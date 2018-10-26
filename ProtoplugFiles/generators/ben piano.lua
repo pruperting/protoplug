@@ -1,9 +1,3 @@
---[[
-name: sine organ
-description: A simple organ-like sinewave VST/AU. 
-author: osar.fr
---]]
-
 require "include/protoplug"
 
 local release = 1*44100

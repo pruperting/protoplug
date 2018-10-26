@@ -2,7 +2,6 @@
 current\ theme.txt
 
 # protoplug: no binaries
-*.dll
 *.lib
 *.exp
 
