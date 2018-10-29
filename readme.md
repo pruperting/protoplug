@@ -1,3 +1,5 @@
+**HELLO**
+========
 for ppl on windows: just put this thing in your vst folder i have included the vst builds. if ur not on windows it will work but you gotta get the builds as specified below VVV also idk how this open source thing works lmk if i fucked this up
 
 protoplug
