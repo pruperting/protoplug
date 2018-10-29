@@ -1,3 +1,13 @@
+--[[
+Microtonal simple FM synth
+
+It uses the scale from Ben Johnston's piano suite.
+this contains only overtones of the root.
+
+The scale is automatically shifted so that the root is the lowest note currently playing. 
+]]
+
+
 require "include/protoplug"
 
 local release = 1*44100
