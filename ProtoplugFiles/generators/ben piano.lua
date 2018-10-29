@@ -18,6 +18,7 @@ function polyGen.VTrack:init()
 	self.fdbck = 0
 	self.env = 0
 	self.attack  = 0
+	self.vel = 0
 end
 
 function processMidi(msg)
@@ -34,7 +35,7 @@ end
 
 function polyGen.VTrack:addProcessBlock(samples, smax)
 	for i = 0,smax do
-	    self.attack = self.attack + 1/20
+	    self.attack = self.attack + 1/40
 	    if self.attack >= 1.0 then
 	        self.attack = 1.0
 	    end
@@ -43,11 +44,14 @@ function polyGen.VTrack:addProcessBlock(samples, smax)
 		self.env = self.env*decayRate
 		
 		self.phase = self.phase + (self.f*math.pi*2)
-		local m1 = math.sin(self.phase*3)*0.2*self.env
+		
+		local m1 = math.sin(self.phase*3.01)*0.3*self.env*self.vel
+		local m2 = math.sin(self.phase*6.98)*0.08*self.env*self.vel
+		local fdb = self.fdbck*self.bright*self.vel
 		
 		
-		local amp = self.env*self.attack
-		local trackSample = math.sin(self.phase+self.fdbck*self.bright+m1)*amp*0.3
+		local amp = self.env*self.attack*self.vel
+		local trackSample = math.sin(self.phase+fdb+m1+m2)*amp*0.4
 		self.fdbck = trackSample
 		samples[0][i] = samples[0][i] + trackSample -- left
 		samples[1][i] = samples[1][i] + trackSample -- right
@@ -80,7 +84,8 @@ function polyGen.VTrack:noteOn(note, vel, ev)
     print(s)]]
     temperNotes()
 	self.phase = 0
-	self.bright = math.min(1.5,0.005/self.f)
+	self.vel = (vel/127)^2
+	self.bright = math.min(2.0,0.005/self.f)
 	--print(0.005/self.f)
 end
 
