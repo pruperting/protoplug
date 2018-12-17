@@ -2,7 +2,7 @@ require "include/protoplug"
 local cbFilter = require "include/dsp/cookbook filters"
 FLine = require "include/dsp/fdelay_line"
 
-local maxLength = 4100
+local maxLength = 4102
 local read = 4096
 
 local feedback = 0
@@ -70,7 +70,8 @@ function stereoFx.Channel:processBlock (samples, smax)
 	
 	    local input = samples[i]
 	    
-		local d = self.delayline.goBack(read);
+	    
+		local d = self.delayline.goBack(read-self.clock);
 		
 		d = d + 0.003*(math.random()-0.5)
 		
@@ -85,7 +86,7 @@ function stereoFx.Channel:processBlock (samples, smax)
 		
 		self.clock = self.clock + freq + 0.02*(math.random()-0.5)*jitter + 0.05*math.sin(self.lfoPhase)*lfoMod*freq
 		if self.clock >= 1.0 then
-		    self.clock = self.clock - 1.0
+		    self.clock = self.clock%1
 		    local interp = self.delayinterp.goBack(5.0+self.clock);
 		    self.delayline.push(interp)
 		end
@@ -126,7 +127,7 @@ params = plugin.manageParams {
 		--type = "int";
 		min = 1;
 		max = 20;
-		changed = function(val) freq = 1.0/val; updateFilters(lpfilters,{f=20000/val}) end;
+		changed = function(val) freq = 1.0/val; updateFilters(lpfilters,{f=22000/val}) end;
 	};
 	{
 		name = "LFO Spd";
