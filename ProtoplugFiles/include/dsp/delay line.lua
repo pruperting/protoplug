@@ -8,6 +8,7 @@ local function blend(a,b,p) return (a*p + b*(1-p)) end
 
 function Line (bufSize)
 	local buf = ffi.new("double[?]", bufSize)
+
 	local pos = 0 -- todo int
 	local dc1, dc2 = 0, 0
 	return {
@@ -22,6 +23,14 @@ function Line (bufSize)
 						if (ipos1)>=bufSize or (ipos1)<0 then error("accessed buf "..(ipos1)) end -- DEBUG
 						if (ipos2)>=bufSize or (ipos2)<0 then error("accessed buf "..(ipos2)) end -- DEBUG
 			return blend(buf[ipos2], buf[ipos1], frac)
+		end;
+		goBack_int = function (dt)
+			-- todo assert dt<bufSize
+			local fpos = pos - dt + 1 
+			local ipos1 = math.floor(fpos)
+			if ipos1 < 0 then ipos1 = ipos1 + bufSize end
+						if (ipos1)>=bufSize or (ipos1)<0 then error("accessed buf "..(ipos1)) end -- DEBUG
+			return buf[ipos1]
 		end;
 		push = function (s)
 			pos = pos + 1
