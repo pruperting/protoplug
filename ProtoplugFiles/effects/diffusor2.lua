@@ -5,19 +5,18 @@ local Line = require "include/dsp/delay line"
 local kap = 0.625
 local l = 100
 local len = 20
-local last = 0
 local feedback = 0
 local time = 1
 
 stereoFx.init ()
 
 function softclip(x) 
-    if x <= -1 then
-        return -2.0/3.0
-    elseif x >= 1 then
-        return 2.0/3.0
+    if x <= -1.5 then
+        return -1
+    elseif x >= 1.5 then
+        return 1
     else
-        return x - (x*x*x)/3.0
+        return x - (4/27)*x*x*x
     end
 end
 
@@ -27,38 +26,35 @@ function stereoFx.Channel:init ()
 	self.len = {}
 	for i=1,100 do
 	    self.ap[i] = Line(1000)
-	    self.len[i] = math.random(700)+210
+	    self.len[i] = math.random(900)+90
 	end
+	self.time = 0
+	self.last = 0
 	--self.ap1 = Line(2000)
 end
 
 function stereoFx.Channel:processBlock (samples, smax)
 	for i = 0, smax do
-	    
+	    self.time = self.time + 1/44100
 
 	    local input = samples[i]
-	    
-	    --local d = self.ap1.goBack_int(500) 
-		--local v = input - kap * d
-		--local signal = kap*v + d
 		
-		local s = input + last*feedback --+ 0.0001*(math.random()-0.5)
+		local s = input - softclip(self.last)*feedback --+ 0.0001*(math.random()-0.5)
 		
-		local tab = self.ap
-		local tablen = self.len
 		for i = 1,l do
-		    local d = tab[i].goBack_int(tablen[i]*time) 
+		    --local d = self.ap[i].goBack_int(self.len[i]*time + 2*math.sin(10*self.time)) 
+		    local d = self.ap[i].goBack_int(self.len[i]*time) 
 		    local v = s - kap * d
 		    
-		    --v = softclip(v)
+		   -- v = softclip(v)
 	        s = kap*v + d
 	        
-	        
+	        --v = softclip(v)
 	        self.ap[i].push(v)
 		end
 		
-		last = s
-		local signal = s
+		local signal =  s - input*(kap^l)
+		self.last = signal
 		
 		
 		samples[i] = input*(1.0-balance) + signal*balance
