@@ -24,13 +24,16 @@ function stereoFx.Channel:init ()
 	-- create per-channel fields (filters)
 	self.ap = {}
 	self.len = {}
-	for i=1,100 do
-	    self.ap[i] = Line(1000)
-	    self.len[i] = math.random(900)+90
+	self.k = {}
+	for i=1,1000 do
+	    self.ap[i] = 0
+	    self.len[i] = math.random()
+	    self.k[i] = math.random()
 	end
 	self.time = 0
 	self.last = 0
-	--self.ap1 = Line(2000)
+	
+	self.delay = Line(20000)
 end
 
 function stereoFx.Channel:processBlock (samples, smax)
@@ -39,22 +42,23 @@ function stereoFx.Channel:processBlock (samples, smax)
 
 	    local input = samples[i]
 		
-		local s = input - softclip(self.last)*feedback --+ 0.0001*(math.random()-0.5)
+		local s = input - softclip(self.delay.goBack_int(18000*time))*feedback --+ 0.0001*(math.random()-0.5)
 		
 		for i = 1,l do
 		    --local d = self.ap[i].goBack_int(self.len[i]*time + 2*math.sin(10*self.time)) 
-		    local d = self.ap[i].goBack_int(self.len[i]*time) 
-		    local v = s - kap * d
+		    local d = self.ap[i]
+		    local v = s + kap * d
+		    
 		    
 		   -- v = softclip(v)
-	        s = kap*v + d
+	        s = -kap*v + d
 	        
 	        --v = softclip(v)
-	        self.ap[i].push(v)
+	        self.ap[i] = v
 		end
 		
-		local signal =  s - input*(kap^l)
-		self.last = signal
+		local signal =  s -- input*(kap^l)
+		self.delay.push(signal)
 		
 		
 		samples[i] = input*(1.0-balance) + signal*balance
@@ -79,7 +83,7 @@ params = plugin.manageParams {
 	{
 		name = "iter";
 	    min = 0;
-		max = 100;
+		max = 1000;
 		type = "int";
 		changed = function(val) l = val end;
 	};
