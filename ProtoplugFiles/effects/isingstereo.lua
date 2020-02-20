@@ -1,26 +1,23 @@
 require "include/protoplug"
-local cbFilter = require "include/dsp/cookbook filters"
+local ffi = require("ffi")
 
-local temp = 0
 
-local n = 512
+local temp = 1
+
+local n = 2048
 local l = 16
 
 local iter = 1
 
 local amp = 1
 
-state = {}
-energy = {}
+state = ffi.new("int[?]", n)
 
 for i = 0,n-1 do
     state[i] = 1;
-    energy[i] = 0
     if math.random() < 0.5 then
-        state[i] = state[i] * (-1)
-        
+        state[i] = -state[i]
     end
-    print(math.random(n)-1)
 end
 
 
@@ -30,11 +27,11 @@ function plugin.processBlock (samples, smax)
         local b1 = samples[0][i]
         local b2 = samples[1][i]
 	    
+	    local exp = math.exp
+	    local rand = math.random
 	    
-	    
-	    --local input = samples[0][i]
 	    for j = 0,iter do
-	        local ind = math.random(n)-1
+	        local ind = rand(n)-1
 	        local s = state[ind]
             --sum = sum + s
             local b = b2
@@ -42,13 +39,22 @@ function plugin.processBlock (samples, smax)
                 b = b1
             end
             
-            local e = -s*(state[(ind-1)%n] + state[(ind+1)%n]  + amp*b)
-            --local e = -s*(state[(ind-1)%n] + state[(ind+1)%n] + state[(ind-l)%n] + state[(ind+l)%n] + amp*b)
+            local i1 = ind - 1
+            local i2 = ind + 1
+            if i1 < 0 then
+                i1 = n-1
+            end
+            if i2 >= n then
+                i2 = 0
+            end
+            
+            local e = -s*(state[i1] + state[i2]  + amp*b)
+            
+           
             
             if e < 0 then
-                local h = math.exp(  (e) / temp);
-                --energy[ind] = h
-                if math.random() < h then
+                local h = exp(e * temp);
+                if rand() < h then
                     state[ind] = -s
                 end
              else
@@ -68,12 +74,8 @@ function plugin.processBlock (samples, smax)
             end
         end
 	    
-	    --state = newstate
-	    
-	    
 		local signal1 = 2*sum1/n
 		local signal2 = 2*sum2/n
-		
 		
 		samples[0][i] = signal1
 		samples[1][i] = signal2
@@ -87,12 +89,9 @@ params = plugin.manageParams {
 		name = "T";
 		min = 0;
 		max = 3;
-		changed = function(val) temp = val; end;
+		changed = function(val) temp = 1/val; end;
 	};
-    {
-		name = "print";
-		changed = function(val) print('=======') ; for i = 0,n-1 do print(state[i]) end; end;
-	};
+    
 	{
 		name = "iter";
 		min = 0;
@@ -106,6 +105,10 @@ params = plugin.manageParams {
 		max = 5;
 		
 		changed = function(val) amp = val; end;
+	};
+	{
+		name = "print";
+		changed = function(val) print('=======') ; for i = 0,n-1 do print(state[i]) end; end;
 	};
 
 }
