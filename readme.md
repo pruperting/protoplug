@@ -1,7 +1,5 @@
-**HELLO**
-========
+For people on windows: just put the whole repository in your vst folder. I have included the builds. if you're not on windows it will work but you gotta get the builds as specified below.
 
-for ppl on windows: just put this thing in your vst folder i have included the vst builds. if ur not on windows it will work but you gotta get the builds as specified below.
 protoplug
 =========
 Create audio plugins on-the-fly with LuaJIT.
