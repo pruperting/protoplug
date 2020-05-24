@@ -1,4 +1,4 @@
- require "include/protoplug"
+  require "include/protoplug"
 
 local release = 0.12*44100
 local releaseRate =  1 - 1/release
@@ -6,12 +6,17 @@ local releaseRate =  1 - 1/release
 local decay = 0.6*44100
 local decayRate =  1 - 1/decay
 
-local sustain = 0.05
+local sustain = 0.1
 
 fifth = 6.956 --fifth in semitones
+fifth = 3.86  --third in semitones
 notes = {}
 
-center = 0
+
+names = {'F','C','G','D','A','E','B'}
+
+cx = 0
+cy = 0
 
 polyGen.initTracks(24)
 
@@ -45,7 +50,6 @@ function processMidi(msg)
         if msg:getControlNumber() == 64 then
             pedal = msg:getControlValue() ~= 0
         end
-        print(pedal)
     end
 end
 
@@ -68,11 +72,11 @@ function polyGen.VTrack:addProcessBlock(samples, smax)
         
         
 		
-		self.phase = self.phase + (self.f*math.pi*2)
+		self.phase = self.phase + (self.f*math.pi*2) + (math.random()-0.5)*0.01
 		
 		local m1 = math.sin(self.phase*2.00)*0.4*self.vel*self.env
 		local m2 = math.sin(self.phase*7.00)*0.02*self.vel*self.env
-		local fdb = self.fdbck*self.bright*2.5*self.env
+		local fdb = self.fdbck*self.bright*2.5
 		
 		
 		local amp = self.env*self.attack*self.vel
@@ -122,19 +126,65 @@ function temper(note)
 	local index = (note)%12
 	local oct = note - index
 	
-	local cround = math.floor(center + 0.5)
+	local x = index*7 - cx
+	local y = x/4 - cy
 	
-	local pos = (((index)*7 + 5 - cround)%12 - 5)
+	x = x % 4
+	y = y % 3
 	
-	if pos ~= 6 then
-        center = center + (pos)*0.25
+	
+	
+	y = y-x*0.25
+	
+	
+	if x > 2.0 then
+	    x = x-4
+	    y = y + 1
+	end
+	
+	if y > 1.5 then
+	    y = y-3
 	end
 	
 	
-	--print(cround,pos,((pos + cround)*6.95)%12)
-	print(cround,pos,index + (pos + cround)*(fifth - 7))
 	
-	return oct + index + (pos + cround)*(fifth - 7)
+	
+	
+	
+	local crx = cx
+	local cry = cy
+	
+	cx = cx + x*0.5
+	cy = cy + y*0.5
+	
+	
+	local px = math.floor(crx + x + 0.5)
+	local py = math.floor(cry + y + 0.5)
+	
+	local sharp = math.floor((px+py*4+1)/7)
+	local comma = py
+	
+	local sh = ''
+	if sharp > 0 then
+	    sh = string.rep("#",sharp)
+	elseif(sharp < 0) then
+	    sh = string.rep("b",-sharp)
+	end
+	
+	local cm = ''
+	if comma > 0 then
+	    cm = string.rep("-",comma)
+	elseif(comma < 0) then
+	    cm = string.rep("+",-comma)
+	end
+	
+	print(names[(px+py*4+1)%7+1] .. sh .. cm)
+    --print(px,py)
+	--print(math.floor((x)*100)/100,math.floor((y)*100)/100)
+	--print(math.floor((cx)*100)/100,math.floor((cy)*100)/100)
+	
+	
+	return note + px*(fifth - 7) + py*(third - 4)
 end
 
 function getFreq(note)
@@ -151,14 +201,21 @@ params = plugin.manageParams {
 		name = "Size of fifth";
 		min = 6.66;
 		max = 7.2;
-		default = 6.97;
+		default = 7.02;
 		changed = function(val) fifth = val end;
+	};
+	{
+		name = "Size of third";
+		min = 3.5;
+		max = 4.5;
+		default = 3.86;
+		changed = function(val) third = val end;
 	};
 	{
 		name = "Reset"; 
 		min = 0;
 		max = 1;
 		default = 0;
-		changed = function(val) center = 0 end;
+		changed = function(val) cx = 0; cy = 0; end;
 	};
 }
