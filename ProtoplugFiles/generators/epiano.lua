@@ -60,7 +60,7 @@ function polyGen.VTrack:addProcessBlock(samples, smax)
 	for i = 0,smax do
 	    if self.env < 0.001 then self.env = 0; break end
 	    
-	    self.attack = self.attack + 1/20
+	    self.attack = self.attack + 1/40
 	    
 	    if self.attack >= 1.0 then
 	        self.attack = 1.0
@@ -98,14 +98,14 @@ function polyGen.VTrack:addProcessBlock(samples, smax)
 		
 
         
-        local d = (s1+0.1*s2 + s3+s4)*0.8*gain*amp
+        local d = (s1+0.13*s2 + s3+s4)*0.8*gain*amp
 		
 		d = 1.0 / math.sqrt(y0*y0 + (d-x0)*(d-x0))
 		
 		d = d - 1.0 / math.sqrt(y0*y0 + x0*x0)
 		
 		
-		local trackSample = 10*(y0*y0)*d/gain
+		local trackSample = 3*(y0*y0)*d/gain
 		
 		
 		
@@ -193,7 +193,7 @@ end
 params = plugin.manageParams {
 	-- automatable VST/AU parameters
 	-- note the new 1.3 way of declaring them
-	{
+	--[[{
 		name = "Size of fifth";
 		min = 6.66;
 		max = 7.2;
@@ -206,7 +206,7 @@ params = plugin.manageParams {
 		max = 1;
 		default = 0;
 		changed = function(val) center = 0 end;
-	};
+	};]]
 	{
 		name = "asymmetry";
 		min = 0;
