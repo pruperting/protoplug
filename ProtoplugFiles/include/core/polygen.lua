@@ -117,6 +117,8 @@ local function processMidiEvent(msg)
 				vt.noteIsOn = false
 			end
 		end
+	else
+		return true
 	end
 end
 
@@ -128,7 +130,9 @@ function polyGen.initTracks(n)
 
 	function plugin.processBlock (samples, smax, midiBuf)
 		for msg in midiBuf:eachEvent() do
-			processMidiEvent(msg)
+			if(processMidiEvent(msg)) then
+				processMidi(msg)
+			end
 		end
 		for i=0,smax do
 			samples[0][i] = 0
